@@ -3,16 +3,19 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func main() {
+	defaultDir := "/tmp/{repository_name}"
 
 	// Parse command line arguments
 	namePtr := flag.String("name", "", "Part of the user's name (case sensitive).")
+	dirPtr := flag.String("dir", defaultDir, "Directory to clone repository in.")
+	keepPtr := flag.Bool("keep", false, "Set to true to keep the local repository after script ends.")
 
 	flag.Parse()
 
@@ -23,39 +26,59 @@ func main() {
 	}
 	repositoryUrl := flag.Args()[0]
 
-	// Create a temporary directory to clone the repository in
-	tempDirPath, err := ioutil.TempDir("", "repository")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Created temporary directory: %s\n", tempDirPath)
-	defer os.RemoveAll(tempDirPath)
+	// Construct directory name
+	urlSplits := strings.Split(repositoryUrl, "/")
+	repositoryName := urlSplits[len(urlSplits)-1]
 
-	// Clone the repository
+	if *dirPtr == defaultDir {
+		*dirPtr = fmt.Sprintf("/tmp/%s", repositoryName)
+	}
+
 	gitCommand := "git"
-	gitCloneArgs := []string{"clone", repositoryUrl, tempDirPath}
 
-	cmd := exec.Command(gitCommand, gitCloneArgs...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// If the directory does not yet exist, create it
+	_, err := os.Stat(*dirPtr)
+	if err != nil {
+		err = os.Mkdir(*dirPtr, 0700)
 
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Clone the repository
+		gitCloneArgs := []string{"clone", repositoryUrl, *dirPtr}
+
+		cmd := exec.Command(gitCommand, gitCloneArgs...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	// Extract emails from git log
-	gitLogArgs := []string{"-C", tempDirPath, "log", "--all", "--pretty=format:%an <%ae>\n"}
+	// Remove directory and contents on exit
+	if *keepPtr == false {
+		defer os.RemoveAll(*dirPtr)
+	}
 
+	// Extract names and emails from git log
+	gitLogArgs := []string{"-C", *dirPtr, "log", "--all", "--pretty=format:%an <%ae>\n"}
+
+	// Add optional name flag
 	if *namePtr != "" {
 		gitLogArgs = append(gitLogArgs, fmt.Sprintf("--author=%s", *namePtr))
 	}
 
-	gitlogCmd := exec.Command(gitCommand, gitLogArgs...)
+	// Sort the results to be unique
 	sortCmd := exec.Command("sort", "-u")
+	gitlogCmd := exec.Command(gitCommand, gitLogArgs...)
 
+	// Construct a pipe from git log to sort
 	sortCmd.Stdout = os.Stdout
 	sortCmd.Stdin, err = gitlogCmd.StdoutPipe()
 
+	// Execute the commands
 	if err != nil {
 		log.Fatal(err)
 	}
