@@ -2,8 +2,7 @@
 A script to get names and email from all contributors of a git repository.
 
 #Why
-- To contact a developer whose email you cannot find online.
-- To build a mailing list targeting developers.
+I wrote this script when I needed to contact a developer but was unable to find his/her email anywhere. It may be useful for others who are in the same situation.
 
 #How
 Git stores the user's name and email for each commit.
