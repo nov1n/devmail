@@ -2,8 +2,8 @@
 A script to get names and email from all contributors of a git repository.
 
 #Why
-*To contact a developer whose email you cannot find online.
-*To build a mailing list targeting developers.
+- To contact a developer whose email you cannot find online.
+- To build a mailing list targeting developers.
 
 #How
 Git stores the user's name and email for each commit.
@@ -12,7 +12,6 @@ Git stores the user's name and email for each commit.
 Use `go build` to create an executable. Then run `./devmail git@github.com:foo/bar.git`.
 
 #Optional flags
-<<<<<<< HEAD
 - --keep=true, does not remove the cloned repository after the script exits
 - --dir=/foo/bar, overwrite the default directory location
 - --name=Bob, searches for users named Bob
