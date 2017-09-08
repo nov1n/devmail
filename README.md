@@ -1,25 +1,25 @@
-#What
+# What
 A script to get names and email addresses from all contributors of a git repository.
 
-#Why
+# Why
 I wrote this script when I needed to contact a developer but was unable to find his/her email anywhere. It may be useful for others who are in the same situation.
 
-#How
+# How
 Git stores the user's name and email for each commit.
 
-#Running
+# Running
 Use `go build` to create an executable. Then run `./devmail git@github.com:foo/bar.git`.
 
-#Optional flags
+# Optional flags
 - --keep=true, does not remove the cloned repository after the script exits
 - --dir=/foo/bar, overwrite the default directory location
 - --name=Bob, searches for users named Bob
 - --help, print usage
 
-#Write to a file
+# Write to a file
 To save the output in a file use `./devmail https://github.com/foo/bar > devmails.txt`
 
-#Example
+# Example
 The following command `./devmail git@github.com:facebook/react.git` produces the following output:
 ```
 Adam Solove <asolove@gmail.com>
